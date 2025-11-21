@@ -174,3 +174,11 @@ minio/
 !nifi/nifi-current/.gitkeep
 !nifi_registry/.gitkeep
 !minio/.gitkeep
+
+# Traefik
+traefik/letsencrypt/
+traefik/acme.json
+traefik/traefik.yml
+
+# Allow example files
+!traefik/traefik.yml.example
