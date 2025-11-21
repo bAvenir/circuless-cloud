@@ -152,3 +152,25 @@ $RECYCLE.BIN/
 !**/traefik.yml.example
 !**/docker-compose.yaml.example
 
+
+# NiFi data directories
+nifi/nifi-current/database_repository/
+nifi/nifi-current/flowfile_repository/
+nifi/nifi-current/content_repository/
+nifi/nifi-current/provenance_repository/
+nifi/nifi-current/state/
+nifi/nifi-current/logs/
+nifi/nifi-current/conf/
+nifi/nifi-current/lib/
+
+# NiFi Registry data
+nifi_registry/database/
+nifi_registry/flow_storage/
+
+# MinIO data
+minio/
+
+# Keep directory structure but ignore contents
+!nifi/nifi-current/.gitkeep
+!nifi_registry/.gitkeep
+!minio/.gitkeep
