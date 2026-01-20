@@ -1,0 +1,63 @@
+services:
+  pki:
+    image: reg.bavenir.eu/private/circpki:dev
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Bratislava
+    env_file:
+      - .env
+    networks:
+      - traefik_net
+    volumes:
+      - ./certs:/pki/certs
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.pki.rule=Host(`${PKI_DOMAIN}`)
+      - traefik.http.routers.pki.entrypoints=websecure
+      - traefik.http.routers.pki.tls.certresolver=myresolver
+      - traefik.http.services.pki.loadbalancer.server.port=80
+      - traefik.http.middlewares.pki-auth.basicauth.users=${PKI_BASIC_AUTH}
+      - traefik.http.routers.pki.middlewares=pki-auth
+      # Public router for revocation list (no auth)
+      - traefik.http.routers.pki-rl.rule=Host(`${PKI_DOMAIN}`) && Path(`/pki/certificates/revocation-list`)
+      - traefik.http.routers.pki-rl.entrypoints=websecure
+      - traefik.http.routers.pki-rl.tls.certresolver=myresolver
+
+  collaboration-catalogue:
+    image: reg.bavenir.eu/private/collaboration-catalogue:0.3
+    container_name: collaboration-catalogue
+    restart: unless-stopped
+    depends_on:
+      - collaboration-catalogue-db
+    env_file:
+      - .env
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.collaboration-catalogue.loadbalancer.server.port=3000
+      - traefik.http.routers.collaboration-catalogue.service=collaboration-catalogue
+      - traefik.http.routers.collaboration-catalogue.rule=Host(`${CC_DOMAIN}`)
+      - traefik.http.routers.collaboration-catalogue.entrypoints=websecure,web
+      - traefik.http.routers.collaboration-catalogue.tls.certresolver=myresolver
+    networks:
+      - traefik_net
+
+  collaboration-catalogue-db:
+    image: postgres:14-alpine
+    container_name: collaboration-catalogue-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - collaboration-catalogue-pgdata:/var/lib/postgresql/data
+    networks:
+      - traefik_net
+
+volumes:
+  collaboration-catalogue-pgdata:
+    external: true
+
+networks:
+  traefik_net:
+    external: true
